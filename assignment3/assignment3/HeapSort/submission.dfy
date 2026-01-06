@@ -1,7 +1,7 @@
 // Please, before you do anything else, add your names here:
-// Group:    <Group number>
-// Member 1: <Full name 1>: <Student number 1>
-// Member 2: <Full name 2>: <Student number 2>
+// Group:    8
+// Member 1: Yuxin Wang: 2078937
+// Member 2: Anusha Asthana: 2115174
 
 include "assignment.dfy"
 
