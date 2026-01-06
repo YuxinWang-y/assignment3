@@ -10,7 +10,36 @@ module Submission refines Assignment {
     @TimeLimit(60)
     lemma ColorSumLemma(coloring: GraphColoring, u: Node)
       requires u in coloring
-      ensures ColorSum(coloring) == ColorSum(coloring - {u}) + ColorValue(coloring[u])
+      ensures ColorSum(coloring) == ColorSum(coloring - {u}) + ColorValue(coloring[u]) 
+      {
+        var v :| v in coloring;
+        assert |coloring| > 0;
+        if |coloring| == 1 {
+          calc {
+            ColorSum(coloring);
+            == 
+            ColorValue(coloring[u]) + ColorSum(coloring - {u});
+            ==
+            ColorValue(coloring[u]) + 0;
+          }
+
+        } else {
+          var v :| v in coloring && v != u;
+          ColorSumLemma(coloring - {v}, u);
+          calc {
+            ColorSum(coloring);
+            == //def. ColorSum
+            ColorValue(coloring[v]) + ColorSum(coloring - {v});
+            == { ColorSumLemma (coloring - {v}, u);}
+            ColorValue(coloring[v]) + ColorValue(coloring[u]) + ColorSum(coloring - {v} - {u});
+            == { assert coloring - {v} - {u} == coloring - {u} - {v};}
+            ColorValue(coloring[v]) + ColorValue(coloring[u]) + ColorSum(coloring - {u} - {v});
+            == {ColorSumLemma (coloring - {u}, v);}
+            ColorValue(coloring[u]) + ColorSum(coloring - {u});
+
+          }
+        }
+      }
     // TODO: prove this lemma
 
     @TimeLimit(60)
