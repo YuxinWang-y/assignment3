@@ -11,35 +11,26 @@ module Submission refines Assignment {
     lemma ColorSumLemma(coloring: GraphColoring, u: Node)
       requires u in coloring
       ensures ColorSum(coloring) == ColorSum(coloring - {u}) + ColorValue(coloring[u]) 
-      {
-        var v :| v in coloring;
-        assert |coloring| > 0;
-        if |coloring| == 1 {
-          calc {
-            ColorSum(coloring);
-            == 
-            ColorValue(coloring[u]) + ColorSum(coloring - {u});
-            ==
-            ColorValue(coloring[u]) + 0;
-          }
+    {
+      var pivot :| pivot in coloring && ColorSum(coloring) == ColorValue(coloring[pivot]) + ColorSum(coloring - {pivot});
 
-        } else {
-          var v :| v in coloring && v != u;
-          ColorSumLemma(coloring - {v}, u);
-          calc {
-            ColorSum(coloring);
-            == //def. ColorSum
-            ColorValue(coloring[v]) + ColorSum(coloring - {v});
-            == { ColorSumLemma (coloring - {v}, u);}
-            ColorValue(coloring[v]) + ColorValue(coloring[u]) + ColorSum(coloring - {v} - {u});
-            == { assert coloring - {v} - {u} == coloring - {u} - {v};}
-            ColorValue(coloring[v]) + ColorValue(coloring[u]) + ColorSum(coloring - {u} - {v});
-            == {ColorSumLemma (coloring - {u}, v);}
-            ColorValue(coloring[u]) + ColorSum(coloring - {u});
-
-          }
+      if pivot == u {
+      } else {
+        var v := pivot;         
+        ColorSumLemma(coloring - {v}, u);
+        
+        calc {
+          ColorSum(coloring);
+          ColorValue(coloring[v]) + ColorSum(coloring - {v});
+          == { ColorSumLemma (coloring - {v}, u); }
+          ColorValue(coloring[v]) + ColorValue(coloring[u]) + ColorSum(coloring - {v} - {u});
+          == { assert coloring - {v} - {u} == coloring - {u} - {v}; }
+          ColorValue(coloring[u]) + ColorValue(coloring[v]) + ColorSum(coloring - {u} - {v});
+          == { ColorSumLemma (coloring - {u}, v); }
+          ColorValue(coloring[u]) + ColorSum(coloring - {u});
         }
       }
+    }
     // TODO: prove this lemma
 
     @TimeLimit(60)
@@ -135,7 +126,8 @@ module Submission refines Assignment {
       var nodes := G.Keys;
       while nodes != {}
         invariant coloring.Keys == G.Keys
-        // TODO: add missing invariants
+          invariant nodes <= G.Keys
+          
       {
         var u :| u in nodes;
         nodes := nodes - {u};
