@@ -118,8 +118,14 @@ module Submission refines Assignment {
       ensures !found ==> coloring[u] == Black
       ensures found <==> HasCycleFrom(u, G)
     {
-      assume ColorSum(coloring[u := Gray]) < ColorSum(coloring);  // assume (1)
+      //assume ColorSum(coloring[u := Gray]) < ColorSum(coloring);  // assume (1)
+      ghost var old_coloring := coloring;
+      assert coloring[u] == White;
+      ColorSumLemma(coloring, u);
       coloring := coloring[u := Gray];
+      ColorSumLemma(coloring, u);
+      ColorSumLemma(old_coloring, u);
+      assert (old_coloring - {u}) == (coloring - {u});
 
       var successors := G[u];
 
@@ -144,23 +150,53 @@ module Submission refines Assignment {
           call_stack := call_stack + [v];
           var result := dfs(v);
           call_stack := call_stack[0 .. |call_stack| - 1];
-          assume ColorSum(old(coloring)) < ColorSum(coloring);  // assume (2)
+          
           if result
           {
-            assume HasCycleFrom(u, G);  // assume (3)
+            CycleLemma(u, G);
+            // assume (3)
+            ghost var w_v, p_v, q_v :| IsLasso(v, w_v, p_v, q_v, G);
+
+            var p_u := [u] + p_v;
+            var w_u := w_v;
+            var q_u := q_v;
+
+            assert IsPath(p_u, G);
+            assert IsPath(q_u, G);
+            assert IsLasso(u, w_u, p_u, q_u, G);
+  
             return true;
           }
         }
         else if coloring[v] == Gray
         {
-          assume HasCycleFrom(u, G);  // assume (4)
+          CycleLemma(u, G);
+          ghost var idx :| 0 <= idx < |call_stack| && call_stack[idx] == v;
+
+          ghost var w := u;
+          ghost var p_to_w := [u];
+  
+  
+          ghost var q_cycle := [u];
+  
+          q_cycle := q_cycle + [v];
+          
+          if idx + 1 < |call_stack| {
+            q_cycle := q_cycle + call_stack[idx+1..];
+          }
+  
+          assert IsPath(p_to_w, G);
+          assert IsPath(q_cycle, G);
+          assert IsLasso(u, w, p_to_w, q_cycle, G);  // assume (4)
           return true;
         }
         i := i + 1;
       }
       CycleLemma(u, G);
 
-      assume ColorSum(coloring[u := Black]) <= ColorSum(coloring);  // assume (5)
+      //assume ColorSum(coloring[u := Black]) <= ColorSum(coloring);  // assume (5)
+      
+      ColorSumLemma(coloring, u);
       coloring := coloring[u := Black];
 
       return false;
