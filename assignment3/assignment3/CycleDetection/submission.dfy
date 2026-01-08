@@ -56,24 +56,34 @@ module Submission refines Assignment {
               ==>
               IsLasso(w, u, p2, q, G);
               ==>
-              HasCycleFrom(w, G);
+              w in G[u] && HasCycleFrom(w, G);
               ==>
-              w in G[u];
-              ==> 
+              !HasCycleFrom(w, G) && HasCycleFrom(w, G);
+              ==>
               false; 
               ==> 
-              !HasCycleFrom(v, G);
+              !HasCycleFrom(u, G);
             }
             
           } else {
             // |p| > 1 
             var v1 := p[1];
             var p2 := p[1..];
-            assert |p2| == |p| - 1;
-            assert IsPath(p2, G);
-            assert IsLasso(v1, v, p2, q, G);
-            assert HasCycleFrom(v1, G);
-            assert v1 in G[u];
+            calc {
+              |p2| == |p| - 1;
+              ==>
+              IsPath(p2, G);
+              ==>
+              IsLasso(v1, v, p2, q, G);
+              ==>  
+              v1 in G[u] && HasCycleFrom(v1, G);
+              ==> 
+              !HasCycleFrom(v1, G) && HasCycleFrom(v1, G);
+              ==>
+              false 
+              ==> 
+              !HasCycleFrom(v, G);
+            }
           }
           
 
@@ -166,7 +176,14 @@ module Submission refines Assignment {
       var nodes := G.Keys;
       while nodes != {}
         invariant coloring.Keys == G.Keys
-          invariant nodes <= G.Keys
+        invariant nodes <= G.Keys
+        invariant SuccessorsOfBlackNodesAreBlack(G, coloring)
+        invariant forall v: Node | v in G :: coloring[v] == White || coloring[v] == Black
+        invariant forall v: Node | v in G :: coloring[v] == Black ==> !HasCycleFrom(v, G)
+        invariant forall v: Node | v in (G.Keys - nodes) :: coloring[v] == Black
+        decreases |nodes| 
+        
+
           
       {
         var u :| u in nodes;
