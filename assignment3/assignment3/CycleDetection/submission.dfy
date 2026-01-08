@@ -39,7 +39,47 @@ module Submission refines Assignment {
     lemma CycleLemma(u: Node, G: Graph)
       requires u in G
       requires forall v: Node | v in G[u] :: !HasCycleFrom(v, G)
-      ensures !HasCycleFrom(u, G)
+      ensures !HasCycleFrom(u, G) 
+      {
+
+        if HasCycleFrom(u, G) {
+          var p, q, v :| IsPath(p, G) && IsPath(q, G) && v in G && IsLasso(u, v, p, q, G);
+          if |p| == 1 {
+            var w := q[1];
+            var p2 := q[1..];
+            calc {
+              p[0] == u && p[|p|-1] == v;
+              ==>
+              |p2| == |q| - 1;
+              ==>
+              IsPath(p2, G);
+              ==>
+              IsLasso(w, u, p2, q, G);
+              ==>
+              HasCycleFrom(w, G);
+              ==>
+              w in G[u];
+              ==> 
+              false; 
+              ==> 
+              !HasCycleFrom(v, G);
+            }
+            
+          } else {
+            // |p| > 1 
+            var v1 := p[1];
+            var p2 := p[1..];
+            assert |p2| == |p| - 1;
+            assert IsPath(p2, G);
+            assert IsLasso(v1, v, p2, q, G);
+            assert HasCycleFrom(v1, G);
+            assert v1 in G[u];
+          }
+          
+
+        }
+       // Needs to prove !HasCycleFrom(u, G) == true 
+      }
     // TODO: prove this lemma
 
     @TimeLimit(60)
